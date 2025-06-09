@@ -1,0 +1,50 @@
+# ASP.NET Core (.NET Framework)
+# Build and test ASP.NET Core projects targeting the full .NET Framework.
+# Add steps that publish symbols, save build artifacts, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
+
+trigger:
+- main  # Ou 'main' se a branch principal for main
+
+pool:
+  vmImage: 'windows-latest'  # Máquina virtual para rodar a build
+
+variables:
+  buildConfiguration: 'Release'
+  solution: 'buzzaraApi.sln'  # Nome exato do arquivo .sln
+  project: 'buzzaraApi/buzzaraApi.csproj'  # Caminho do arquivo .csproj principal da API
+
+steps:
+# 1️⃣ Verificar se a estrutura de diretórios está correta
+- script: dir
+  displayName: 'Verificar estrutura do diretório'
+
+# 2️⃣ Instalar o SDK do .NET 8
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '8.0.x'  # Especifica o .NET 8
+    installationPath: $(Agent.ToolsDirectory)/dotnet
+
+# 3️⃣ Restaurar pacotes NuGet
+- script: dotnet restore $(solution)
+  displayName: 'Restaurar dependências'
+
+# 4️⃣ Compilar a API
+- script: dotnet build $(solution) --configuration $(buildConfiguration) --no-restore
+  displayName: 'Compilar API'
+
+# 5️⃣ Executar testes (se houver)
+- script: dotnet test $(solution) --configuration $(buildConfiguration) --no-build --verbosity normal
+  displayName: 'Executar testes'
+
+# 6️⃣ Publicar a API (gera os arquivos para deploy)
+- script: dotnet publish $(project) --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)
+  displayName: 'Publicar API'
+
+# 7️⃣ Salvar os artefatos da build
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: 'drop'
+  displayName: 'Publicar artefatos'

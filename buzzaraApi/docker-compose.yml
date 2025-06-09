@@ -1,0 +1,16 @@
+﻿version: '3.8'
+
+services:
+  buzzara-api:
+    build: .
+    container_name: buzzara-api
+    ports:
+      - "8080:8080"
+    volumes:
+      - uploads-data:/app/Uploads
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    restart: always
+
+volumes:
+  uploads-data:

@@ -1,0 +1,11 @@
+﻿@buzzaraApi_HostAddress = http://localhost:5001
+
+POST {{buzzaraApi_HostAddress}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "natan.mollica@gmail.com","
+  "password": "123456"
+}
+
+###
