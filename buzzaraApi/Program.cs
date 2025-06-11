@@ -6,7 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Json.Serialization;
 using DotNetEnv;
-using System.IdentityModel.Tokens.Jwt; // certifique-se de ter instalado o pacote DotNetEnv
+using System.IdentityModel.Tokens.Jwt;
 
 DotNetEnv.Env.Load();
 
