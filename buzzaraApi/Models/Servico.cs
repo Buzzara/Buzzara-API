@@ -10,6 +10,9 @@ namespace buzzaraApi.Models
 
         public required string Categoria { get; set; }
         public required string LugarEncontro { get; set; }
+        public required string ServicoPrestado { get; set; }
+        public required string ServicoEspecial { get; set; }
+
         public string? Disponibilidade { get; set; }
 
         public int? Idade { get; set; }      
@@ -26,6 +29,9 @@ namespace buzzaraApi.Models
         public ICollection<FotoAnuncio> Fotos { get; set; } = new List<FotoAnuncio>();
         public ICollection<VideoAnuncio> Videos { get; set; } = new List<VideoAnuncio>();
         public Localizacao? Localizacao { get; set; }
+        public SobreUsuario? SobreUsuario { get; set; }
+        public ICollection<ServicoCache> Caches { get; set; } = new List<ServicoCache>();
+
     }
 
 }

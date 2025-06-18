@@ -9,6 +9,8 @@ namespace buzzaraApi.DTOs
 
         public required string Categoria { get; set; }
         public required string LugarEncontro { get; set; }
+        public required string ServicoPrestado { get; set; }
+        public required string ServicoEspecial { get; set; }
         public string? Disponibilidade { get; set; }
 
         public int? Idade { get; set; }

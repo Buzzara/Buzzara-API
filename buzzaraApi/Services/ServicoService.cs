@@ -34,6 +34,8 @@ namespace buzzaraApi.Services
             {
                 Nome = dto.Nome,
                 Descricao = dto.Descricao,
+                ServicoPrestado = dto.ServicoPrestado,
+                ServicoEspecial = dto.ServicoEspecial,
                 Preco = dto.Preco,
                 Categoria = dto.Categoria,
                 LugarEncontro = dto.LugarEncontro,
