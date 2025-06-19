@@ -55,6 +55,9 @@ namespace buzzaraApi.Services
                 Peso = s.Peso,
                 Altura = s.Altura,
 
+                ServicoPrestado = s.ServicoPrestado, // Fix for required property
+                ServicoEspecial = s.ServicoEspecial,  // Fix for required property
+
                 NomeAcompanhante = s.PerfilAcompanhante.Usuario.Nome,
                 FotoPerfilUrl = MontarUrl(s.PerfilAcompanhante.Usuario.FotoPerfilUrl),
 
@@ -107,6 +110,8 @@ namespace buzzaraApi.Services
                 Categoria = s.Categoria,
                 LugarEncontro = s.LugarEncontro,
                 Disponibilidade = s.Disponibilidade,
+                ServicoPrestado = s.ServicoPrestado, // Fix for required property
+                ServicoEspecial = s.ServicoEspecial,  // Fix for required property
                 Idade = s.Idade,
                 Peso = s.Peso,
                 Altura = s.Altura,

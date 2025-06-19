@@ -50,6 +50,50 @@ namespace buzzaraApi.Services
             _ctx.Servicos.Add(servico);
             await _ctx.SaveChangesAsync(); // Primeiro salva para obter o ID
 
+            // ==========================
+            // Salvar SobreUsuario
+            // ==========================
+            if (dto.SobreUsuario != null)
+            {
+                var sobreUsuario = new SobreUsuario
+                {
+                    ServicoId = servico.ServicoID,
+                    Atendimento = dto.SobreUsuario.Atendimento,
+                    Etnia = dto.SobreUsuario.Etnia,
+                    Relacionamento = dto.SobreUsuario.Relacionamento,
+                    Cabelo = dto.SobreUsuario.Cabelo,
+                    Estatura = dto.SobreUsuario.Estatura,
+                    Corpo = dto.SobreUsuario.Corpo,
+                    Seios = dto.SobreUsuario.Seios,
+                    Pubis = dto.SobreUsuario.Pubis
+                };
+
+                _ctx.SobreUsuarios.Add(sobreUsuario);
+                await _ctx.SaveChangesAsync();
+            }
+
+            // ==========================
+            // Salvar Caches
+            // ==========================
+            if (dto.Caches != null && dto.Caches.Any())
+            {
+                foreach (var cacheDto in dto.Caches)
+                {
+                    var cache = new ServicoCache
+                    {
+                        ServicoId = servico.ServicoID,
+                        FormaPagamento = cacheDto.FormaPagamento,
+                        DescricaoCache = cacheDto.Descricao,
+                        ValorCache = cacheDto.Valor
+                    };
+
+                    _ctx.ServicosCaches.Add(cache);
+                }
+
+                await _ctx.SaveChangesAsync();
+            }
+
+
             // Salvar localização, se informada
             if (!string.IsNullOrWhiteSpace(dto.Cidade) || !string.IsNullOrWhiteSpace(dto.Estado) || dto.Latitude != null)
             {

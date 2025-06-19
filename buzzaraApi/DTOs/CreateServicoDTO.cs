@@ -1,4 +1,6 @@
 ﻿// DTOs/CreateServicoDTO.cs
+using buzzaraApi.Models;
+
 namespace buzzaraApi.DTOs
 {
     public class CreateServicoDTO
@@ -27,6 +29,9 @@ namespace buzzaraApi.DTOs
 
         public List<IFormFile>? Fotos { get; set; }
         public IFormFile? Video { get; set; }
+        public SobreUsuarioDTO? SobreUsuario { get; set; }
+        public List<ServicoCacheDTO> Caches { get; set; } = new List<ServicoCacheDTO>();
+
     }
 
 

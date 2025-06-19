@@ -34,6 +34,9 @@ namespace buzzaraApi.Data
         // Localização
         public DbSet<Localizacao> Localizacoes { get; set; } = null!;
 
+        public DbSet<SobreUsuario> SobreUsuarios { get; set; } = null!;
+        public DbSet<ServicoCache> ServicosCaches { get; set; } = null!;
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
