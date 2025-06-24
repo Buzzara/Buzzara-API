@@ -155,37 +155,79 @@ namespace buzzaraApi.Services
             var servicos = await _ctx.Servicos
                 .Include(s => s.Fotos)
                 .Include(s => s.Videos)
+                .Include(s => s.Localizacao)
+                .Include(s => s.SobreUsuario)
+                .Include(s => s.Caches)
                 .Where(s => s.PerfilAcompanhante.UsuarioID == userId && s.Ativo)
                 .ToListAsync();
 
-            return servicos.Select(s => new ServicoDTO
+            return servicos.Select(s =>
             {
-                ServicoID = s.ServicoID,
-                Nome = s.Nome,
-                Descricao = s.Descricao,
-                Preco = s.Preco,
-                Categoria = s.Categoria,
-                LugarEncontro = s.LugarEncontro,
-                Disponibilidade = s.Disponibilidade,
-                Idade = s.Idade,
-                Peso = s.Peso,
-                Altura = s.Altura,
-                DataCriacao = s.DataCriacao,
-                Fotos = s.Fotos.Select(f => new FotoAnuncioDTO
-                {
-                    FotoAnuncioID = f.FotoAnuncioID,
-                    Url = $"{_baseUrl}{f.Url}",
-                    DataUpload = f.DataUpload
-                }).ToList(),
-                Videos = s.Videos.Select(v => new VideoAnuncioDTO
-                {
-                    VideoAnuncioID = v.VideoAnuncioID,
-                    Url = $"{_baseUrl}{v.Url}",
-                    DataUpload = v.DataUpload
-                }).ToList()
-            }).ToList();
+                // Monta o DTO de SobreUsuario com segurança contra nulos
+                var sobre = s.SobreUsuario != null
+                    ? new SobreUsuarioDTO
+                    {
+                        Atendimento = s.SobreUsuario.Atendimento?.ToList() ?? new List<string>(),
+                        Etnia = s.SobreUsuario.Etnia,
+                        Relacionamento = s.SobreUsuario.Relacionamento,
+                        Cabelo = s.SobreUsuario.Cabelo,
+                        Estatura = s.SobreUsuario.Estatura,
+                        Corpo = s.SobreUsuario.Corpo,
+                        Seios = s.SobreUsuario.Seios,
+                        Pubis = s.SobreUsuario.Pubis
+                    }
+                    : null;
 
+                return new ServicoDTO
+                {
+                    ServicoID = s.ServicoID,
+                    Nome = s.Nome,
+                    Descricao = s.Descricao,
+                    Preco = s.Preco,
+                    Categoria = s.Categoria,
+                    LugarEncontro = s.LugarEncontro,
+                    Disponibilidade = s.Disponibilidade,
+                    Idade = s.Idade,
+                    Peso = s.Peso,
+                    Altura = s.Altura,
+                    DataCriacao = s.DataCriacao,
+
+                    Localizacao = s.Localizacao == null ? null : new LocalizacaoDTO
+                    {
+                        Endereco = s.Localizacao.Endereco,
+                        Cidade = s.Localizacao.Cidade,
+                        Estado = s.Localizacao.Estado,
+                        Bairro = s.Localizacao.Bairro,
+                        Latitude = s.Localizacao.Latitude,
+                        Longitude = s.Localizacao.Longitude
+                    },
+
+                    SobreUsuario = sobre,
+
+                    Caches = s.Caches.Select(c => new ServicoCacheDTO
+                    {
+                        FormaPagamento = c.FormaPagamento,
+                        Descricao = c.DescricaoCache,
+                        Valor = c.ValorCache
+                    }).ToList(),
+
+                    Fotos = s.Fotos.Select(f => new FotoAnuncioDTO
+                    {
+                        FotoAnuncioID = f.FotoAnuncioID,
+                        Url = $"{_baseUrl}{f.Url}",
+                        DataUpload = f.DataUpload
+                    }).ToList(),
+
+                    Videos = s.Videos.Select(v => new VideoAnuncioDTO
+                    {
+                        VideoAnuncioID = v.VideoAnuncioID,
+                        Url = $"{_baseUrl}{v.Url}",
+                        DataUpload = v.DataUpload
+                    }).ToList()
+                };
+            }).ToList();
         }
+
 
         // Upload de nova foto para um anúncio existente
         public async Task<FotoAnuncioDTO> UploadFotoAsync(int servicoId, IFormFile file, int userId)
@@ -301,92 +343,112 @@ namespace buzzaraApi.Services
         {
             await ValidarPermissaoAnuncio(servicoId, userId);
 
+            // carrega com tudo
             var servico = await _ctx.Servicos
                 .Include(s => s.Fotos)
                 .Include(s => s.Videos)
                 .Include(s => s.Localizacao)
+                .Include(s => s.SobreUsuario)
+                .Include(s => s.Caches)
                 .FirstOrDefaultAsync(s => s.ServicoID == servicoId)
                 ?? throw new KeyNotFoundException("Anúncio não encontrado.");
+
+            // 1) campos básicos
             servico.Nome = dto.Nome;
             servico.Descricao = dto.Descricao;
             servico.Preco = dto.Preco;
             servico.Categoria = dto.Categoria;
             servico.LugarEncontro = dto.LugarEncontro;
             servico.Disponibilidade = dto.Disponibilidade;
+            servico.Idade = dto.Idade;
+            servico.Peso = dto.Peso;
+            servico.Altura = dto.Altura;
             servico.DataAtualizacao = DateTime.UtcNow;
 
+            // 2) Localização
+            if (servico.Localizacao != null)
+                _ctx.Localizacoes.Remove(servico.Localizacao);
 
-            // // Atualiza localização
-            // if (servico.Localizacao == null)
-            //     servico.Localizacao = new Localizacao { ServicoID = servicoId };
-
-            // servico.Localizacao.Endereco = dto.Endereco;
-            // servico.Localizacao.Cidade = dto.Cidade;
-            // servico.Localizacao.Estado = dto.Estado;
-            // servico.Localizacao.Bairro = dto.Bairro;
-            // servico.Localizacao.Latitude = dto.Latitude;
-            // servico.Localizacao.Longitude = dto.Longitude;
-
-            // 1) Substitui fotos (se vieram novas)
-            if (dto.NovasFotos != null)
+            if (!string.IsNullOrWhiteSpace(dto.Cidade) || dto.Latitude != null)
             {
-                // 1a) Deleta fisicamente cada foto antiga
-                foreach (var foto in servico.Fotos)
+                _ctx.Localizacoes.Add(new Localizacao
                 {
-                    var physicalPath = Path.Combine(
-                        Directory.GetCurrentDirectory(),
-                        "wwwroot",
-                        foto.Url.TrimStart('/').Replace('/', Path.DirectorySeparatorChar)
-                    );
-                    if (File.Exists(physicalPath))
-                        File.Delete(physicalPath);
-                }
-
-                // 1b) Remove do EF e salva essa exclusão
-                _ctx.FotosAnuncios.RemoveRange(servico.Fotos);
-                await _ctx.SaveChangesAsync();
-
-                // 1c) Salva as novas
-                foreach (var nova in dto.NovasFotos)
-                    await SalvarFoto(servicoId, userId, nova);
+                    ServicoID = servicoId,
+                    Endereco = dto.Endereco,
+                    Cidade = dto.Cidade,
+                    Estado = dto.Estado,
+                    Bairro = dto.Bairro,
+                    Latitude = dto.Latitude,
+                    Longitude = dto.Longitude
+                });
             }
 
-            // 2) Substitui vídeo (se vier novo)
+            // 3) Mídias
+            // fotos
+            if (dto.NovasFotos?.Any() == true)
+            {
+                // deleta antigas
+                foreach (var f in servico.Fotos)
+                    File.Delete(Path.Combine("wwwroot", f.Url.TrimStart('/').Replace('/', Path.DirectorySeparatorChar)));
+                _ctx.FotosAnuncios.RemoveRange(servico.Fotos);
+                foreach (var f in dto.NovasFotos)
+                    await SalvarFoto(servicoId, userId, f);
+            }
+            // vídeo
             if (dto.NovoVideo != null)
             {
-                // 2a) Deleta fisicamente cada vídeo antigo
-                foreach (var video in servico.Videos)
-                {
-                    var physicalPath = Path.Combine(
-                        Directory.GetCurrentDirectory(),
-                        "wwwroot",
-                        video.Url.TrimStart('/').Replace('/', Path.DirectorySeparatorChar)
-                    );
-                    if (File.Exists(physicalPath))
-                        File.Delete(physicalPath);
-                }
-
-                // 2b) Remove do EF e salva essa exclusão
+                foreach (var v in servico.Videos)
+                    File.Delete(Path.Combine("wwwroot", v.Url.TrimStart('/').Replace('/', Path.DirectorySeparatorChar)));
                 _ctx.VideosAnuncios.RemoveRange(servico.Videos);
-                await _ctx.SaveChangesAsync();
 
-                // 2c) Valida duração e salva o novo
-                var duracao = await ObterDuracaoVideoSegundos(dto.NovoVideo);
-                if (duracao > 50)
-                    throw new InvalidOperationException("O vídeo deve ter no máximo 50 segundos.");
-
+                var dur = await ObterDuracaoVideoSegundos(dto.NovoVideo);
+                if (dur > 50) throw new InvalidOperationException("Vídeo >50s");
                 await SalvarVideo(servicoId, userId, dto.NovoVideo);
             }
 
-            // 3) (Opcional) Atualize localização aqui...
+            // 4) SobreUsuario
+            if (servico.SobreUsuario != null)
+                _ctx.SobreUsuarios.Remove(servico.SobreUsuario);
 
-            // 4) Persiste data de atualização em campo DataAtualizacao
+            if (dto.SobreUsuario != null)
+            {
+                _ctx.SobreUsuarios.Add(new SobreUsuario
+                {
+                    ServicoId = servicoId,
+                    Atendimento = dto.SobreUsuario.Atendimento,
+                    Etnia = dto.SobreUsuario.Etnia,
+                    Relacionamento = dto.SobreUsuario.Relacionamento,
+                    Cabelo = dto.SobreUsuario.Cabelo,
+                    Estatura = dto.SobreUsuario.Estatura,
+                    Corpo = dto.SobreUsuario.Corpo,
+                    Seios = dto.SobreUsuario.Seios,
+                    Pubis = dto.SobreUsuario.Pubis
+                });
+            }
+
+            // 5) Caches
+            if (servico.Caches.Any())
+                _ctx.ServicosCaches.RemoveRange(servico.Caches);
+
+            if (dto.Caches?.Any() == true)
+            {
+                foreach (var c in dto.Caches)
+                    _ctx.ServicosCaches.Add(new ServicoCache
+                    {
+                        ServicoId = servicoId,
+                        FormaPagamento = c.FormaPagamento,
+                        DescricaoCache = c.Descricao,
+                        ValorCache = c.Valor
+                    });
+            }
+
+            // 6) salva tudo
             await _ctx.SaveChangesAsync();
 
-            // 5) Retorna o DTO atualizado
-            return await GetAllByUserAsync(userId)
-                .ContinueWith(t => t.Result.First(s => s.ServicoID == servicoId));
+            // 7) mapeia e devolve
+            return (await GetAllByUserAsync(userId)).First(x => x.ServicoID == servicoId);
         }
+
 
         public async Task<bool> DeleteAsync(int servicoId, int userId)
         {

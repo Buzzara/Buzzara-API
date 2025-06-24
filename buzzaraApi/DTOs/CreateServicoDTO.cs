@@ -56,6 +56,8 @@ namespace buzzaraApi.DTOs
         public LocalizacaoDTO? Localizacao { get; set; }
         public List<FotoAnuncioDTO> Fotos { get; set; } = new();
         public List<VideoAnuncioDTO> Videos { get; set; } = new();
+        public SobreUsuarioDTO SobreUsuario { get; internal set; }
+        public List<ServicoCacheDTO> Caches { get; internal set; }
     }
 }
 
