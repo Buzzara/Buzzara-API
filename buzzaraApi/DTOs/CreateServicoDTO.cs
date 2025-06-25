@@ -8,6 +8,7 @@ namespace buzzaraApi.DTOs
         public string Nome { get; set; } = null!;
         public string Descricao { get; set; } = null!;
         public decimal Preco { get; set; }
+        public string Saidas { get; set; } = null!;
 
         public required string Categoria { get; set; }
         public required string LugarEncontro { get; set; }
@@ -43,6 +44,7 @@ namespace buzzaraApi.DTOs
     public class ServicoDTO
     {
         public int ServicoID { get; set; }
+        public string Saidas { get; set; } = null!;
         public string Nome { get; set; } = null!;
         public string Descricao { get; set; } = null!;
         public decimal Preco { get; set; }
@@ -56,8 +58,8 @@ namespace buzzaraApi.DTOs
         public LocalizacaoDTO? Localizacao { get; set; }
         public List<FotoAnuncioDTO> Fotos { get; set; } = new();
         public List<VideoAnuncioDTO> Videos { get; set; } = new();
-        public SobreUsuarioDTO SobreUsuario { get; internal set; }
-        public List<ServicoCacheDTO> Caches { get; internal set; }
+        public SobreUsuarioDTO SobreUsuario { get; set; }
+        public List<ServicoCacheDTO> Caches { get; set; }
     }
 }
 

@@ -5,6 +5,7 @@ namespace buzzaraApi.Models
     {
         public int ServicoID { get; set; }
         public string Nome { get; set; } = null!;
+        public string Saidas { get; set; } = null!;
         public string Descricao { get; set; } = null!;
         public decimal Preco { get; set; }
 
