@@ -16,7 +16,6 @@ namespace buzzaraApi.Models
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
 
-        // Relacionamento 1:1 com Servico
         public int ServicoID { get; set; }
         public Servico Servico { get; set; } = null!;
     }
