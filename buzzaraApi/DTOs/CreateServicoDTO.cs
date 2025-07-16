@@ -7,10 +7,8 @@ namespace buzzaraApi.DTOs
     {
         public string Nome { get; set; } = null!;
         public string Descricao { get; set; } = null!;
-        public decimal Preco { get; set; }
         public string Saidas { get; set; } = null!;
 
-        public required string Categoria { get; set; }
         public required string LugarEncontro { get; set; }
         public required string ServicoPrestado { get; set; }
         public required string ServicoEspecial { get; set; }
@@ -47,8 +45,6 @@ namespace buzzaraApi.DTOs
         public string Saidas { get; set; } = null!;
         public string Nome { get; set; } = null!;
         public string Descricao { get; set; } = null!;
-        public decimal Preco { get; set; }
-        public required string Categoria { get; set; }
         public required string LugarEncontro { get; set; }
         public string? Disponibilidade { get; set; }
         public int? Idade { get; set; }

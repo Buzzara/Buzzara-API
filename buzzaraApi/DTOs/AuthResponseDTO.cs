@@ -11,6 +11,8 @@
     {
         public int Id { get; set; }
         public required string Nome { get; set; }
+        public required string Genero { get; set; }
+        public required bool EstaOnline { get; set; }
         public required string Email { get; set; }
         public required string Role { get; set; }
         public bool Ativo { get; set; }

@@ -98,6 +98,8 @@ namespace buzzaraApi.Controllers
                 {
                     Id = usuario.UsuarioID,
                     Nome = usuario.Nome,
+                    Genero = usuario.Genero ?? "Não informado",
+                    EstaOnline = usuario.EstaOnline,
                     Email = usuario.Email,
                     Role = usuario.Role!,
                     Ativo = usuario.Ativo,
@@ -124,13 +126,17 @@ namespace buzzaraApi.Controllers
         [Authorize]
         public async Task<IActionResult> Logout()
         {
-            var idClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            var idClaim = User.Claims
+                .FirstOrDefault(c =>
+                    c.Type == ClaimTypes.NameIdentifier ||
+                    c.Type == "nameid" || // caso token tenha essa variação
+                    c.Type == "sub")?.Value;
+
             if (int.TryParse(idClaim, out int userId))
             {
                 var usuario = await _authService.ObterUsuarioPorId(userId);
                 if (usuario != null)
                 {
-                    // CAPTURA O IP FORÇANDO IPv4
                     var ip = HttpContext.Connection.RemoteIpAddress;
                     if (ip != null && ip.IsIPv4MappedToIPv6)
                         ip = ip.MapToIPv4();
@@ -194,5 +200,28 @@ namespace buzzaraApi.Controllers
 
             return Ok(new { message = "Senha alterada com sucesso!" });
         }
+
+        [HttpPost("keep-alive")]
+        [Authorize]
+        public async Task<IActionResult> KeepAlive()
+        {
+            var idClaim = User.Claims
+                .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "sub" || c.Type == "nameid")
+                ?.Value;
+
+            if (int.TryParse(idClaim, out int userId))
+            {
+                var usuario = await _authService.ObterUsuarioPorId(userId);
+                if (usuario != null)
+                {
+                    usuario.EstaOnline = true;
+                    usuario.UltimoAcesso = DateTime.Now;
+                    await _authService.AtualizarUsuario(usuario);
+                }
+            }
+
+            return Ok(new { message = "Keep-alive atualizado com sucesso." });
+        }
+
     }
 }

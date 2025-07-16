@@ -8,9 +8,9 @@ namespace buzzaraApi.DTOs
         public int UsuarioID { get; set; }
         public int ServicoID { get; set; }
         public string Nome { get; set; } = null!;
+        public string Genero { get; set; } = null!;
+        public string Saidas { get; set; } = null!;
         public string Descricao { get; set; } = null!;
-        public decimal Preco { get; set; }
-        public string Categoria { get; set; } = null!;
         public string LugarEncontro { get; set; } = null!;
         public required string ServicoPrestado { get; set; }
         public required string ServicoEspecial { get; set; }

@@ -22,6 +22,8 @@ namespace buzzaraApi.Services
                 .Include(s => s.Fotos)
                 .Include(s => s.Videos)
                 .Include(s => s.Localizacao)
+                .Include(x => x.SobreUsuario)
+                .Include(x => x.Caches)
                 .Where(s => s.Ativo)
                 .AsQueryable();
 
@@ -44,13 +46,11 @@ namespace buzzaraApi.Services
                 UsuarioID = s.PerfilAcompanhante.Usuario.UsuarioID,
                 ServicoID = s.ServicoID,
                 Nome = s.Nome,
-                Descricao = s.Descricao,
-                Preco = s.Preco,
                 DataCriacao = s.DataCriacao,
 
-                Categoria = s.Categoria,
                 LugarEncontro = s.LugarEncontro,
                 Disponibilidade = s.Disponibilidade,
+                Genero = s.PerfilAcompanhante.Usuario.Genero ?? "Não informado",
                 Idade = s.Idade,
                 Peso = s.Peso,
                 Altura = s.Altura,
@@ -95,6 +95,8 @@ namespace buzzaraApi.Services
                 .Include(x => x.Fotos)
                 .Include(x => x.Videos)
                 .Include(x => x.Localizacao)
+                .Include(x => x.SobreUsuario)
+                .Include(x => x.Caches)
                 .FirstOrDefaultAsync(x => x.ServicoID == servicoId && x.Ativo);
 
             if (s == null) return null;
@@ -105,9 +107,8 @@ namespace buzzaraApi.Services
                 ServicoID = s.ServicoID,
                 Nome = s.Nome,
                 Descricao = s.Descricao,
-                Preco = s.Preco,
+                Saidas = s.Saidas,
                 DataCriacao = s.DataCriacao,
-                Categoria = s.Categoria,
                 LugarEncontro = s.LugarEncontro,
                 Disponibilidade = s.Disponibilidade,
                 ServicoPrestado = s.ServicoPrestado, // Fix for required property
@@ -139,7 +140,19 @@ namespace buzzaraApi.Services
                     VideoAnuncioID = v.VideoAnuncioID,
                     Url = MontarUrl(v.Url),
                     DataUpload = v.DataUpload
-                }).ToList()
+                }).ToList(),
+                SobreUsuario = s.SobreUsuario != null ? new Models.SobreUsuario
+                {
+                    Atendimento = s.SobreUsuario.Atendimento,
+                    Etnia = s.SobreUsuario.Etnia,
+                    Relacionamento = s.SobreUsuario.Relacionamento,
+                    Cabelo = s.SobreUsuario.Cabelo,
+                    Estatura = s.SobreUsuario.Estatura,
+                    Corpo = s.SobreUsuario.Corpo,
+                    Seios = s.SobreUsuario.Seios,
+                    Pubis = s.SobreUsuario.Pubis
+                } : null, 
+                Caches = s.Caches != null ? s.Caches.ToList() : new List<Models.ServicoCache>()
             };
         }
 

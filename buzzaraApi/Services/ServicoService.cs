@@ -36,16 +36,14 @@ namespace buzzaraApi.Services
                 Descricao = dto.Descricao,
                 ServicoPrestado = dto.ServicoPrestado,
                 ServicoEspecial = dto.ServicoEspecial,
-                Preco = dto.Preco,
-                Categoria = dto.Categoria,
                 LugarEncontro = dto.LugarEncontro,
                 Disponibilidade = dto.Disponibilidade,
                 Idade = dto.Idade,
                 Peso = dto.Peso,
                 Altura = dto.Altura,
+                Saidas = FormatSaidas(dto.Saidas),
                 PerfilAcompanhanteID = perfil.PerfilAcompanhanteID
             };
-
 
             _ctx.Servicos.Add(servico);
             await _ctx.SaveChangesAsync(); // Primeiro salva para obter o ID
@@ -137,8 +135,7 @@ namespace buzzaraApi.Services
                 ServicoID = servico.ServicoID,
                 Nome = servico.Nome,
                 Descricao = servico.Descricao,
-                Preco = servico.Preco,
-                Categoria = servico.Categoria,
+                Saidas = servico.Saidas,
                 LugarEncontro = servico.LugarEncontro,
                 Disponibilidade = servico.Disponibilidade,
                 Idade = servico.Idade,
@@ -183,8 +180,7 @@ namespace buzzaraApi.Services
                     ServicoID = s.ServicoID,
                     Nome = s.Nome,
                     Descricao = s.Descricao,
-                    Preco = s.Preco,
-                    Categoria = s.Categoria,
+                    Saidas = s.Saidas,
                     LugarEncontro = s.LugarEncontro,
                     Disponibilidade = s.Disponibilidade,
                     Idade = s.Idade,
@@ -339,6 +335,28 @@ namespace buzzaraApi.Services
 
             return mediaInfo.Duration.TotalSeconds;
         }
+
+        private string FormatSaidas(string? input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return "Vou até lugar não informado.";
+
+            var destinos = input
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Trim())
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .ToList();
+
+            return destinos.Count switch
+            {
+                0 => "Vou até lugar não informado.",
+                1 => $"Vou até {destinos[0]}.",
+                2 => $"Vou até {destinos[0]} e {destinos[1]}.",
+                _ => $"Vou até {string.Join(", ", destinos.Take(destinos.Count - 1))} e {destinos.Last()}."
+            };
+        }
+
+
         public async Task<ServicoDTO> UpdateAsync(int servicoId, int userId, UpdateServicoDTO dto)
         {
             await ValidarPermissaoAnuncio(servicoId, userId);
@@ -356,13 +374,12 @@ namespace buzzaraApi.Services
             // 1) campos básicos
             servico.Nome = dto.Nome;
             servico.Descricao = dto.Descricao;
-            servico.Preco = dto.Preco;
-            servico.Categoria = dto.Categoria;
             servico.LugarEncontro = dto.LugarEncontro;
             servico.Disponibilidade = dto.Disponibilidade;
             servico.Idade = dto.Idade;
             servico.Peso = dto.Peso;
             servico.Altura = dto.Altura;
+            servico.Saidas = FormatSaidas(dto.Saidas);
             servico.DataAtualizacao = DateTime.UtcNow;
 
             // 2) Localização
