@@ -98,6 +98,7 @@ namespace buzzaraApi.Controllers
                 {
                     Id = usuario.UsuarioID,
                     Nome = usuario.Nome,
+                    Genero = usuario.Genero ?? "Não informado",
                     Email = usuario.Email,
                     Role = usuario.Role!,
                     Ativo = usuario.Ativo,

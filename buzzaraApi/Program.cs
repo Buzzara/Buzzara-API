@@ -16,7 +16,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")
-        ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.")));
+        ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found."))
+    .EnableSensitiveDataLogging() // <-- mostra os valores dos parâmetros nas queries
+    .LogTo(Console.WriteLine, LogLevel.Error) // <-- exibe os erros do EF no console
+);
 
 // Configuração de autenticação com JWT
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");

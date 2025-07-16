@@ -63,6 +63,7 @@ namespace buzzaraApi.Services
                 {
                     Id = usuario.UsuarioID,
                     Nome = usuario.Nome,
+                    Genero = usuario.Genero ?? "Não informado",
                     Email = usuario.Email,
                     Role = usuario.Role ?? "Acompanhante",
                     Ativo = usuario.Ativo,
@@ -95,6 +96,7 @@ namespace buzzaraApi.Services
             {
                 new Claim("nameid", usuario.UsuarioID.ToString()),
                 new Claim("name", usuario.Nome),
+                new Claim("genero", usuario.Genero ?? "Não informado"),
                 new Claim("email", usuario.Email),
                 new Claim("role", usuario.Role ?? "Acompanhante")
             };
@@ -171,6 +173,7 @@ namespace buzzaraApi.Services
                 {
                     Id = usuario.UsuarioID,
                     Nome = usuario.Nome,
+                    Genero = usuario.Genero ?? "Não informado",
                     Email = usuario.Email,
                     Role = usuario.Role ?? string.Empty,
                     Ativo = usuario.Ativo,
