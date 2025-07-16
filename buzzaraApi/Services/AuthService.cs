@@ -64,6 +64,7 @@ namespace buzzaraApi.Services
                     Id = usuario.UsuarioID,
                     Nome = usuario.Nome,
                     Genero = usuario.Genero ?? "Não informado",
+                    EstaOnline = usuario.EstaOnline,
                     Email = usuario.Email,
                     Role = usuario.Role ?? "Acompanhante",
                     Ativo = usuario.Ativo,
@@ -94,9 +95,10 @@ namespace buzzaraApi.Services
 
             var claims = new List<Claim>
             {
-                new Claim("nameid", usuario.UsuarioID.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, usuario.UsuarioID.ToString()), // ✅ Corrigido
                 new Claim("name", usuario.Nome),
                 new Claim("genero", usuario.Genero ?? "Não informado"),
+                new Claim(usuario.EstaOnline ? "online" : "offline", "true"),
                 new Claim("email", usuario.Email),
                 new Claim("role", usuario.Role ?? "Acompanhante")
             };
@@ -174,6 +176,7 @@ namespace buzzaraApi.Services
                     Id = usuario.UsuarioID,
                     Nome = usuario.Nome,
                     Genero = usuario.Genero ?? "Não informado",
+                    EstaOnline = usuario.EstaOnline,
                     Email = usuario.Email,
                     Role = usuario.Role ?? string.Empty,
                     Ativo = usuario.Ativo,

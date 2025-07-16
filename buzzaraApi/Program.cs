@@ -71,6 +71,8 @@ builder.Services.AddScoped<NovoUsuarioService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<DashboardService>();
 
+builder.Services.AddHostedService<UsuarioStatusService>();
+
 builder.Services.AddHttpClient<GeoNamesService>();
 
 builder.Services.AddScoped<PagamentoService>();
