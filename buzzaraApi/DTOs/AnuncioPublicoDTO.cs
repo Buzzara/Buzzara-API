@@ -26,7 +26,7 @@ namespace buzzaraApi.DTOs
 
         public List<FotoAnuncioDTO> Fotos { get; set; } = new();
         public List<VideoAnuncioDTO> Videos { get; set; } = new();
-        public SobreUsuario? SobreUsuario { get; set; }
-        public ICollection<ServicoCache> Caches { get; set; } = new List<ServicoCache>();
+        public SobreUsuarioDTO? SobreUsuario { get; set; }
+        public ICollection<ServicoCacheDTO> Caches { get; set; } = new List<ServicoCacheDTO>();
     }
 }
