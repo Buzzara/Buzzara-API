@@ -103,45 +103,44 @@ namespace buzzaraApi.Services
 
             return new AnuncioPublicoDTO
             {
-                UsuarioID = s.PerfilAcompanhante.Usuario.UsuarioID,
                 ServicoID = s.ServicoID,
                 Nome = s.Nome,
                 Descricao = s.Descricao,
                 Saidas = s.Saidas,
-                DataCriacao = s.DataCriacao,
                 LugarEncontro = s.LugarEncontro,
-                Disponibilidade = s.Disponibilidade,
                 ServicoPrestado = s.ServicoPrestado, // Fix for required property
-                ServicoEspecial = s.ServicoEspecial,  // Fix for required property
+                ServicoEspecial = s.ServicoEspecial, // Fix for required property
+                Disponibilidade = s.Disponibilidade,
                 Idade = s.Idade,
                 Peso = s.Peso,
                 Altura = s.Altura,
-                NomeAcompanhante = s.PerfilAcompanhante.Usuario.Nome,
-                FotoPerfilUrl = MontarUrl(s.PerfilAcompanhante.Usuario.FotoPerfilUrl),
-                Localizacao = s.Localizacao != null
-                                    ? new LocalizacaoDTO
-                                    {
-                                        Endereco = s.Localizacao.Endereco,
-                                        Bairro = s.Localizacao.Bairro,
-                                        Cidade = s.Localizacao.Cidade,
-                                        Estado = s.Localizacao.Estado,
-                                        Latitude = s.Localizacao.Latitude,
-                                        Longitude = s.Localizacao.Longitude
-                                    }
-                                    : null,
+                DataCriacao = s.DataCriacao,
+
+                Localizacao = s.Localizacao != null ? new LocalizacaoDTO
+                {
+                    Endereco = s.Localizacao.Endereco,
+                    Bairro = s.Localizacao.Bairro,
+                    Cidade = s.Localizacao.Cidade,
+                    Estado = s.Localizacao.Estado,
+                    Latitude = s.Localizacao.Latitude,
+                    Longitude = s.Localizacao.Longitude
+                } : null,
+
                 Fotos = s.Fotos.Select(f => new FotoAnuncioDTO
                 {
                     FotoAnuncioID = f.FotoAnuncioID,
                     Url = MontarUrl(f.Url),
                     DataUpload = f.DataUpload
                 }).ToList(),
+
                 Videos = s.Videos.Select(v => new VideoAnuncioDTO
                 {
                     VideoAnuncioID = v.VideoAnuncioID,
                     Url = MontarUrl(v.Url),
                     DataUpload = v.DataUpload
                 }).ToList(),
-                SobreUsuario = s.SobreUsuario != null ? new Models.SobreUsuario
+
+                SobreUsuario = s.SobreUsuario != null ? new SobreUsuarioDTO
                 {
                     Atendimento = s.SobreUsuario.Atendimento,
                     Etnia = s.SobreUsuario.Etnia,
@@ -151,10 +150,17 @@ namespace buzzaraApi.Services
                     Corpo = s.SobreUsuario.Corpo,
                     Seios = s.SobreUsuario.Seios,
                     Pubis = s.SobreUsuario.Pubis
-                } : null, 
-                Caches = s.Caches != null ? s.Caches.ToList() : new List<Models.ServicoCache>()
+                } : null,
+
+                Caches = s.Caches.Select(c => new ServicoCacheDTO
+                {
+                    FormaPagamento = c.FormaPagamento,
+                    Descricao = c.DescricaoCache,
+                    Valor = c.ValorCache
+                }).ToList()
             };
         }
+
 
         public async Task<List<AnuncioPublicoDTO>> ListarPorUsuario(int usuarioId)
         {
