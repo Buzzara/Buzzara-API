@@ -30,6 +30,11 @@ namespace buzzaraApi.DTOs
         public IFormFile? Video { get; set; }
         public SobreUsuarioDTO? SobreUsuario { get; set; }
         public List<ServicoCacheDTO> Caches { get; set; } = new List<ServicoCacheDTO>();
+        public bool MesmoHorarioTodosOsDias { get; set; }
+
+        public HorarioAtendimentoDTO? HorarioUnico { get; set; }
+
+        public List<HorarioAtendimentoDTO>? HorariosIndividuais { get; set; }
 
     }
 
@@ -56,6 +61,8 @@ namespace buzzaraApi.DTOs
         public List<VideoAnuncioDTO> Videos { get; set; } = new();
         public SobreUsuarioDTO? SobreUsuario { get; set; }
         public List<ServicoCacheDTO>? Caches { get; set; }
+        public List<HorarioAtendimentoDTO>? HorariosAtendimento { get; set; }
+
     }
 }
 

@@ -28,5 +28,7 @@ namespace buzzaraApi.DTOs
         public List<VideoAnuncioDTO> Videos { get; set; } = new();
         public SobreUsuarioDTO? SobreUsuario { get; set; }
         public ICollection<ServicoCacheDTO> Caches { get; set; } = new List<ServicoCacheDTO>();
+        public List<HorarioAtendimentoDTO>? HorariosAtendimento { get; set; }
+
     }
 }

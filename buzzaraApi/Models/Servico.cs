@@ -30,6 +30,7 @@ namespace buzzaraApi.Models
         public Localizacao? Localizacao { get; set; }
         public SobreUsuario? SobreUsuario { get; set; }
         public ICollection<ServicoCache> Caches { get; set; } = new List<ServicoCache>();
+        public ICollection<HorarioAtendimento> HorariosAtendimento { get; set; } = new List<HorarioAtendimento>();
 
     }
 
