@@ -95,6 +95,7 @@ namespace buzzaraApi.Services
                 .Include(x => x.Fotos)
                 .Include(x => x.Videos)
                 .Include(x => x.Localizacao)
+                .Include(s => s.HorariosAtendimento)
                 .Include(x => x.SobreUsuario)
                 .Include(x => x.Caches)
                 .FirstOrDefaultAsync(x => x.ServicoID == servicoId && x.Ativo);
@@ -108,6 +109,7 @@ namespace buzzaraApi.Services
                 Descricao = s.Descricao,
                 Saidas = s.Saidas,
                 LugarEncontro = s.LugarEncontro,
+                FotoPerfilUrl = MontarUrl(s.PerfilAcompanhante.Usuario.FotoPerfilUrl),
                 ServicoPrestado = s.ServicoPrestado, // Fix for required property
                 ServicoEspecial = s.ServicoEspecial, // Fix for required property
                 Disponibilidade = s.Disponibilidade,
@@ -151,6 +153,14 @@ namespace buzzaraApi.Services
                     Seios = s.SobreUsuario.Seios,
                     Pubis = s.SobreUsuario.Pubis
                 } : null,
+                HorariosAtendimento = s.HorariosAtendimento?.Select(h => new HorarioAtendimentoDTO
+                {
+                    DiaSemana = h.DiaSemana,
+                    Atende = h.Atende,
+                    HorarioInicio = h.HorarioInicio?.ToString(@"hh\:mm"),
+                    HorarioFim = h.HorarioFim?.ToString(@"hh\:mm"),
+                    VinteQuatroHoras = h.VinteQuatroHoras
+                }).ToList(),
 
                 Caches = s.Caches.Select(c => new ServicoCacheDTO
                 {

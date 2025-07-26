@@ -18,6 +18,8 @@ namespace buzzaraApi.Data
 
         // Agendamentos
         public DbSet<Agendamento> Agendamentos { get; set; } = null!;
+        public DbSet<HorarioAtendimento> HorariosAtendimentos { get; set; }
+
 
         // Anúncios (Serviços)
         public DbSet<Servico> Servicos { get; set; } = null!;

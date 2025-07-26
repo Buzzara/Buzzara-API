@@ -110,6 +110,20 @@ namespace buzzaraApi.Services
                 await _ctx.SaveChangesAsync();
             }
 
+            // Salvar horários de atendimento
+            var horarios = MapearHorarios(new HorarioInputDTO
+            {
+                MesmoHorarioTodosOsDias = dto.MesmoHorarioTodosOsDias,
+                HorarioUnico = dto.HorarioUnico,
+                HorariosIndividuais = dto.HorariosIndividuais
+            }, servico.ServicoID);
+
+            if (horarios.Any())
+            {
+                _ctx.HorariosAtendimentos.AddRange(horarios);
+                await _ctx.SaveChangesAsync();
+            }
+
             // Upload das fotos (máximo 4)
             if (dto.Fotos != null && dto.Fotos.Any())
             {
@@ -141,7 +155,16 @@ namespace buzzaraApi.Services
                 Idade = servico.Idade,
                 Peso = servico.Peso,
                 Altura = servico.Altura,
-                DataCriacao = servico.DataCriacao
+                DataCriacao = servico.DataCriacao,
+                HorariosAtendimento = horarios.Select(h => new HorarioAtendimentoDTO
+                {
+                    DiaSemana = h.DiaSemana,
+                    Atende = h.Atende,
+                    HorarioInicio = h.HorarioInicio?.ToString(@"hh\:mm"),
+                    HorarioFim = h.HorarioFim?.ToString(@"hh\:mm"),
+                    VinteQuatroHoras = h.VinteQuatroHoras
+                }).ToList()
+
             };
 
         }
@@ -153,6 +176,7 @@ namespace buzzaraApi.Services
                 .Include(s => s.Fotos)
                 .Include(s => s.Videos)
                 .Include(s => s.Localizacao)
+                .Include(s => s.HorariosAtendimento)
                 .Include(s => s.SobreUsuario)
                 .Include(s => s.Caches)
                 .Where(s => s.PerfilAcompanhante.UsuarioID == userId && s.Ativo)
@@ -197,6 +221,14 @@ namespace buzzaraApi.Services
                         Latitude = s.Localizacao.Latitude,
                         Longitude = s.Localizacao.Longitude
                     },
+                    HorariosAtendimento = s.HorariosAtendimento?.Select(h => new HorarioAtendimentoDTO
+                    {
+                        DiaSemana = h.DiaSemana,
+                        Atende = h.Atende,
+                        HorarioInicio = h.HorarioInicio?.ToString(@"hh\:mm"),
+                        HorarioFim = h.HorarioFim?.ToString(@"hh\:mm"),
+                        VinteQuatroHoras = h.VinteQuatroHoras
+                    }).ToList(),
 
                     SobreUsuario = sobre,
 
@@ -356,7 +388,6 @@ namespace buzzaraApi.Services
             };
         }
 
-
         public async Task<ServicoDTO> UpdateAsync(int servicoId, int userId, UpdateServicoDTO dto)
         {
             await ValidarPermissaoAnuncio(servicoId, userId);
@@ -368,6 +399,7 @@ namespace buzzaraApi.Services
                 .Include(s => s.Localizacao)
                 .Include(s => s.SobreUsuario)
                 .Include(s => s.Caches)
+                .Include(s => s.HorariosAtendimento)
                 .FirstOrDefaultAsync(s => s.ServicoID == servicoId)
                 ?? throw new KeyNotFoundException("Anúncio não encontrado.");
 
@@ -401,17 +433,15 @@ namespace buzzaraApi.Services
             }
 
             // 3) Mídias
-            // fotos
             if (dto.NovasFotos?.Any() == true)
             {
-                // deleta antigas
                 foreach (var f in servico.Fotos)
                     File.Delete(Path.Combine("wwwroot", f.Url.TrimStart('/').Replace('/', Path.DirectorySeparatorChar)));
                 _ctx.FotosAnuncios.RemoveRange(servico.Fotos);
                 foreach (var f in dto.NovasFotos)
                     await SalvarFoto(servicoId, userId, f);
             }
-            // vídeo
+
             if (dto.NovoVideo != null)
             {
                 foreach (var v in servico.Videos)
@@ -459,10 +489,24 @@ namespace buzzaraApi.Services
                     });
             }
 
-            // 6) salva tudo
+            // 6) Horários de Atendimento
+            if (servico.HorariosAtendimento.Any())
+                _ctx.HorariosAtendimentos.RemoveRange(servico.HorariosAtendimento);
+
+            var novosHorarios = MapearHorarios(new HorarioInputDTO
+            {
+                MesmoHorarioTodosOsDias = dto.MesmoHorarioTodosOsDias,
+                HorarioUnico = dto.HorarioUnico,
+                HorariosIndividuais = dto.HorariosIndividuais
+            }, servicoId);
+
+            if (novosHorarios.Any())
+                _ctx.HorariosAtendimentos.AddRange(novosHorarios);
+
+            // 7) Salvar tudo
             await _ctx.SaveChangesAsync();
 
-            // 7) mapeia e devolve
+            // 8) Retornar atualizado
             return (await GetAllByUserAsync(userId)).First(x => x.ServicoID == servicoId);
         }
 
@@ -490,6 +534,47 @@ namespace buzzaraApi.Services
             await _ctx.SaveChangesAsync();
             return true;
         }
+        private static readonly string[] DiasDaSemana = new[]
+        {
+            "Segunda", "Terca", "Quarta", "Quinta", "Sexta", "Sabado", "Domingo"
+        };
 
+        private List<HorarioAtendimento> MapearHorarios(HorarioInputDTO dto, int servicoId)
+        {
+            var horarios = new List<HorarioAtendimento>();
+
+            if (dto.MesmoHorarioTodosOsDias && dto.HorarioUnico != null)
+            {
+                foreach (var dia in DiasDaSemana)
+                {
+                    horarios.Add(new HorarioAtendimento
+                    {
+                        ServicoId = servicoId,
+                        DiaSemana = dia,
+                        Atende = dto.HorarioUnico.Atende,
+                        HorarioInicio = TimeSpan.TryParse(dto.HorarioUnico.HorarioInicio, out var inicio) ? inicio : null,
+                        HorarioFim = TimeSpan.TryParse(dto.HorarioUnico.HorarioFim, out var fim) ? fim : null,
+                        VinteQuatroHoras = dto.HorarioUnico.VinteQuatroHoras
+                    });
+                }
+            }
+            else if (dto.HorariosIndividuais != null)
+            {
+                foreach (var h in dto.HorariosIndividuais)
+                {
+                    horarios.Add(new HorarioAtendimento
+                    {
+                        ServicoId = servicoId,
+                        DiaSemana = h.DiaSemana!,
+                        Atende = h.Atende,
+                        HorarioInicio = TimeSpan.TryParse(h.HorarioInicio, out var inicioInd) ? inicioInd : null,
+                        HorarioFim = TimeSpan.TryParse(h.HorarioFim, out var fimInd) ? fimInd : null,
+                        VinteQuatroHoras = h.VinteQuatroHoras
+                    });
+                }
+            }
+
+            return horarios;
+        }
     }
 }

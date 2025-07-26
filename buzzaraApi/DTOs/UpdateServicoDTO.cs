@@ -25,4 +25,8 @@ public class UpdateServicoDTO
     public IFormFile? NovoVideo { get; set; }
     public SobreUsuarioDTO? SobreUsuario { get; set; }
     public List<ServicoCacheDTO>? Caches { get; set; }
+    public bool MesmoHorarioTodosOsDias { get; set; }
+    public HorarioAtendimentoDTO? HorarioUnico { get; set; }
+    public List<HorarioAtendimentoDTO>? HorariosIndividuais { get; set; }
+
 }
