@@ -24,7 +24,10 @@ public class UpdateServicoDTO
     public double? Latitude { get; set; }
     public double? Longitude { get; set; }
 
+    [FromForm(Name = "Fotos")]
     public List<IFormFile>? NovasFotos { get; set; }
+
+    [FromForm(Name = "Video")]
     public IFormFile? NovoVideo { get; set; }
     public SobreUsuarioDTO? SobreUsuario { get; set; }
     public List<ServicoCacheDTO>? Caches { get; set; }
