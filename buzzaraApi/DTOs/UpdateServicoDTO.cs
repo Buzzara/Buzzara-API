@@ -1,4 +1,5 @@
 ﻿using buzzaraApi.DTOs;
+using Microsoft.AspNetCore.Mvc;
 
 public class UpdateServicoDTO
 {
@@ -6,7 +7,9 @@ public class UpdateServicoDTO
     public string Descricao { get; set; } = null!;
     public string LugarEncontro { get; set; } = null!;
     public string Saidas { get; set; } = null!;
+    [FromForm(Name = "servicoPrestado")]
     public required string ServicoPrestado { get; set; }
+    [FromForm(Name = "servicoEspecial")]
     public required string ServicoEspecial { get; set; }
     public string? Disponibilidade { get; set; }
 

@@ -390,9 +390,10 @@ namespace buzzaraApi.Services
 
         public async Task<ServicoDTO> UpdateAsync(int servicoId, int userId, UpdateServicoDTO dto)
         {
+            // 0) Permissão
             await ValidarPermissaoAnuncio(servicoId, userId);
 
-            // carrega com tudo
+            // 1) Carregar serviço completo
             var servico = await _ctx.Servicos
                 .Include(s => s.Fotos)
                 .Include(s => s.Videos)
@@ -403,113 +404,210 @@ namespace buzzaraApi.Services
                 .FirstOrDefaultAsync(s => s.ServicoID == servicoId)
                 ?? throw new KeyNotFoundException("Anúncio não encontrado.");
 
-            // 1) campos básicos
-            servico.Nome = dto.Nome;
-            servico.Descricao = dto.Descricao;
-            servico.LugarEncontro = dto.LugarEncontro;
-            servico.Disponibilidade = dto.Disponibilidade;
-            servico.Idade = dto.Idade;
-            servico.Peso = dto.Peso;
-            servico.Altura = dto.Altura;
-            servico.Saidas = FormatSaidas(dto.Saidas);
-            servico.DataAtualizacao = DateTime.UtcNow;
-
-            // 2) Localização
-            if (servico.Localizacao != null)
-                _ctx.Localizacoes.Remove(servico.Localizacao);
-
-            if (!string.IsNullOrWhiteSpace(dto.Cidade) || dto.Latitude != null)
+            // 2) Atualizar campos básicos
+            try
             {
-                _ctx.Localizacoes.Add(new Localizacao
+                servico.Nome = dto.Nome;
+                servico.Descricao = dto.Descricao;
+                servico.ServicoPrestado = dto.ServicoPrestado;
+                servico.ServicoEspecial = dto.ServicoEspecial;
+                servico.LugarEncontro = dto.LugarEncontro;
+                servico.Disponibilidade = dto.Disponibilidade;
+                servico.Idade = dto.Idade;
+                servico.Peso = dto.Peso;
+                servico.Altura = dto.Altura;
+                servico.Saidas = FormatSaidas(dto.Saidas);
+                servico.DataAtualizacao = DateTime.UtcNow;
+
+                Console.WriteLine("[Update] Campos básicos atualizados");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Erro] ao atualizar campos básicos: {ex.Message}");
+                throw;
+            }
+
+            // 3) Localização
+            try
+            {
+                if (servico.Localizacao != null)
                 {
-                    ServicoID = servicoId,
-                    Endereco = dto.Endereco,
-                    Cidade = dto.Cidade,
-                    Estado = dto.Estado,
-                    Bairro = dto.Bairro,
-                    Latitude = dto.Latitude,
-                    Longitude = dto.Longitude
-                });
-            }
+                    _ctx.Localizacoes.Remove(servico.Localizacao);
+                    await _ctx.SaveChangesAsync();
+                    Console.WriteLine("[Update] Localização antiga removida");
+                }
 
-            // 3) Mídias
-            if (dto.NovasFotos?.Any() == true)
-            {
-                foreach (var f in servico.Fotos)
-                    File.Delete(Path.Combine("wwwroot", f.Url.TrimStart('/').Replace('/', Path.DirectorySeparatorChar)));
-                _ctx.FotosAnuncios.RemoveRange(servico.Fotos);
-                foreach (var f in dto.NovasFotos)
-                    await SalvarFoto(servicoId, userId, f);
-            }
-
-            if (dto.NovoVideo != null)
-            {
-                foreach (var v in servico.Videos)
-                    File.Delete(Path.Combine("wwwroot", v.Url.TrimStart('/').Replace('/', Path.DirectorySeparatorChar)));
-                _ctx.VideosAnuncios.RemoveRange(servico.Videos);
-
-                var dur = await ObterDuracaoVideoSegundos(dto.NovoVideo);
-                if (dur > 50) throw new InvalidOperationException("Vídeo >50s");
-                await SalvarVideo(servicoId, userId, dto.NovoVideo);
-            }
-
-            // 4) SobreUsuario
-            if (servico.SobreUsuario != null)
-                _ctx.SobreUsuarios.Remove(servico.SobreUsuario);
-
-            if (dto.SobreUsuario != null)
-            {
-                _ctx.SobreUsuarios.Add(new SobreUsuario
+                if (!string.IsNullOrWhiteSpace(dto.Cidade) || dto.Latitude != null)
                 {
-                    ServicoId = servicoId,
-                    Atendimento = dto.SobreUsuario.Atendimento,
-                    Etnia = dto.SobreUsuario.Etnia,
-                    Relacionamento = dto.SobreUsuario.Relacionamento,
-                    Cabelo = dto.SobreUsuario.Cabelo,
-                    Estatura = dto.SobreUsuario.Estatura,
-                    Corpo = dto.SobreUsuario.Corpo,
-                    Seios = dto.SobreUsuario.Seios,
-                    Pubis = dto.SobreUsuario.Pubis
-                });
+                    _ctx.Localizacoes.Add(new Localizacao
+                    {
+                        ServicoID = servicoId,
+                        Endereco = dto.Endereco,
+                        Cidade = dto.Cidade,
+                        Estado = dto.Estado,
+                        Bairro = dto.Bairro,
+                        Latitude = dto.Latitude,
+                        Longitude = dto.Longitude
+                    });
+                    await _ctx.SaveChangesAsync();
+                    Console.WriteLine("[Update] Nova localização adicionada");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Erro] ao atualizar localização: {ex.Message}");
+                throw;
             }
 
-            // 5) Caches
-            if (servico.Caches.Any())
-                _ctx.ServicosCaches.RemoveRange(servico.Caches);
-
-            if (dto.Caches?.Any() == true)
+            // 4) Mídias (fotos e vídeo)
+            try
             {
-                foreach (var c in dto.Caches)
-                    _ctx.ServicosCaches.Add(new ServicoCache
+                if (dto.NovasFotos?.Any() == true)
+                {
+                    // Deleta fotos antigas
+                    foreach (var f in servico.Fotos)
+                    {
+                        var caminho = Path.Combine("wwwroot", f.Url.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                        if (File.Exists(caminho)) File.Delete(caminho);
+                    }
+                    _ctx.FotosAnuncios.RemoveRange(servico.Fotos);
+                    await _ctx.SaveChangesAsync();
+                    Console.WriteLine("[Update] Fotos antigas removidas");
+
+                    // Salva novas
+                    foreach (var file in dto.NovasFotos)
+                        await SalvarFoto(servicoId, userId, file);
+                    Console.WriteLine("[Update] Novas fotos salvas");
+                }
+
+                if (dto.NovoVideo != null)
+                {
+                    // Deleta vídeo antigo
+                    foreach (var v in servico.Videos)
+                    {
+                        var caminho = Path.Combine("wwwroot", v.Url.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                        if (File.Exists(caminho)) File.Delete(caminho);
+                    }
+                    _ctx.VideosAnuncios.RemoveRange(servico.Videos);
+                    await _ctx.SaveChangesAsync();
+                    Console.WriteLine("[Update] Vídeos antigos removidos");
+
+                    // Valida duração e salva novo
+                    var duracao = await ObterDuracaoVideoSegundos(dto.NovoVideo);
+                    if (duracao > 50)
+                        throw new InvalidOperationException("Vídeo >50s");
+                    await SalvarVideo(servicoId, userId, dto.NovoVideo);
+                    Console.WriteLine("[Update] Novo vídeo salvo");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Erro] ao atualizar mídias: {ex.Message}");
+                throw;
+            }
+
+            // 5) SobreUsuario
+            try
+            {
+                if (servico.SobreUsuario != null)
+                {
+                    _ctx.SobreUsuarios.Remove(servico.SobreUsuario);
+                    await _ctx.SaveChangesAsync();
+                    Console.WriteLine("[Update] SobreUsuario antigo removido");
+                }
+
+                if (dto.SobreUsuario != null)
+                {
+                    _ctx.SobreUsuarios.Add(new SobreUsuario
                     {
                         ServicoId = servicoId,
-                        FormaPagamento = c.FormaPagamento,
-                        DescricaoCache = c.Descricao,
-                        ValorCache = c.Valor
+                        Atendimento = dto.SobreUsuario.Atendimento,
+                        Etnia = dto.SobreUsuario.Etnia,
+                        Relacionamento = dto.SobreUsuario.Relacionamento,
+                        Cabelo = dto.SobreUsuario.Cabelo,
+                        Estatura = dto.SobreUsuario.Estatura,
+                        Corpo = dto.SobreUsuario.Corpo,
+                        Seios = dto.SobreUsuario.Seios,
+                        Pubis = dto.SobreUsuario.Pubis
                     });
+                    await _ctx.SaveChangesAsync();
+                    Console.WriteLine("[Update] Novo SobreUsuario adicionado");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Erro] ao atualizar SobreUsuario: {ex.Message}");
+                throw;
             }
 
-            // 6) Horários de Atendimento
-            if (servico.HorariosAtendimento.Any())
-                _ctx.HorariosAtendimentos.RemoveRange(servico.HorariosAtendimento);
-
-            var novosHorarios = MapearHorarios(new HorarioInputDTO
+            // 6) Caches
+            try
             {
-                MesmoHorarioTodosOsDias = dto.MesmoHorarioTodosOsDias,
-                HorarioUnico = dto.HorarioUnico,
-                HorariosIndividuais = dto.HorariosIndividuais
-            }, servicoId);
+                if (servico.Caches.Any())
+                {
+                    _ctx.ServicosCaches.RemoveRange(servico.Caches);
+                    await _ctx.SaveChangesAsync();
+                    Console.WriteLine("[Update] Caches antigos removidos");
+                }
 
-            if (novosHorarios.Any())
-                _ctx.HorariosAtendimentos.AddRange(novosHorarios);
+                if (dto.Caches?.Any() == true)
+                {
+                    foreach (var c in dto.Caches)
+                    {
+                        _ctx.ServicosCaches.Add(new ServicoCache
+                        {
+                            ServicoId = servicoId,
+                            FormaPagamento = c.FormaPagamento,
+                            DescricaoCache = c.Descricao,
+                            ValorCache = c.Valor
+                        });
+                    }
+                    await _ctx.SaveChangesAsync();
+                    Console.WriteLine("[Update] Novos caches adicionados");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Erro] ao atualizar caches: {ex.Message}");
+                throw;
+            }
 
-            // 7) Salvar tudo
-            await _ctx.SaveChangesAsync();
+            // 7) Horários de Atendimento
+            try
+            {
+                if (servico.HorariosAtendimento.Any())
+                {
+                    _ctx.HorariosAtendimentos.RemoveRange(servico.HorariosAtendimento);
+                    await _ctx.SaveChangesAsync();
+                    Console.WriteLine("[Update] Horários antigos removidos");
+                }
 
-            // 8) Retornar atualizado
-            return (await GetAllByUserAsync(userId)).First(x => x.ServicoID == servicoId);
+                var novosHorarios = MapearHorarios(new HorarioInputDTO
+                {
+                    MesmoHorarioTodosOsDias = dto.MesmoHorarioTodosOsDias,
+                    HorarioUnico = dto.HorarioUnico,
+                    HorariosIndividuais = dto.HorariosIndividuais
+                }, servicoId);
+
+                if (novosHorarios.Any())
+                {
+                    _ctx.HorariosAtendimentos.AddRange(novosHorarios);
+                    await _ctx.SaveChangesAsync();
+                    Console.WriteLine("[Update] Novos horários adicionados");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Erro] ao atualizar horários: {ex.Message}");
+                throw;
+            }
+
+            // 8) Retorno
+            var updatedDto = (await GetAllByUserAsync(userId))
+                                .First(x => x.ServicoID == servicoId);
+
+            return updatedDto;
         }
-
 
         public async Task<bool> DeleteAsync(int servicoId, int userId)
         {
