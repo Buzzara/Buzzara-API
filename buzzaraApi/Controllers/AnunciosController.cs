@@ -139,13 +139,25 @@ namespace buzzaraApi.Controllers
                 if (fotos == null || fotos.Count == 0)
                     return BadRequest(new { error = "Nenhuma foto enviada." });
 
-                if (fotos.Count > 4)
-                    return BadRequest(new { error = "Máximo de 4 fotos por pacote." });
+                // 1) conta quantas fotos o anúncio já tem
+                var totalExistente = await _svc.CountFotosAsync(id, userId);
+                const int maxGratis = 4;
+                const int maxPacote = 4;
+                const int maxTotal = maxGratis + maxPacote;
 
+                if (totalExistente >= maxTotal)
+                    return BadRequest(new { error = "Você já atingiu o número máximo de 8 fotos permitidas." });
+
+                var espacoRestante = maxTotal - totalExistente;
+                if (fotos.Count > espacoRestante)
+                    return BadRequest(new
+                    {
+                        error = $"Você só pode adicionar mais {espacoRestante} foto(s)."
+                    });
+
+                // 2) grava as fotos permitidas
                 foreach (var foto in fotos)
-                {
                     await _svc.UploadFotoAsync(id, foto, userId);
-                }
 
                 return Ok(new { message = "Fotos adicionadas com sucesso." });
             }
@@ -158,7 +170,6 @@ namespace buzzaraApi.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
-
         /// <summary>
         /// Edita um anúncio existente.
         /// </summary>

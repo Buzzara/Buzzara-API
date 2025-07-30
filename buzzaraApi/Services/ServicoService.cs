@@ -287,6 +287,17 @@ namespace buzzaraApi.Services
             };
         }
 
+        public async Task<int> CountFotosAsync(int servicoId, int userId)
+        {
+            // só para garantir permissão
+            await ValidarPermissaoAnuncio(servicoId, userId);
+
+            // conta quantas fotos já existem
+            return await _ctx.FotosAnuncios
+                             .CountAsync(f => f.ServicoID == servicoId);
+        }
+
+
         // ========== Métodos privados ==========
 
         private async Task ValidarPermissaoAnuncio(int servicoId, int userId)
