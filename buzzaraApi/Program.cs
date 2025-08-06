@@ -1,5 +1,10 @@
 using buzzaraApi.Data;
 using buzzaraApi.Services;
+using buzzaraApi.Settings; 
+using MercadoPago;
+using MercadoPago.Config;
+using MercadoPago.Http;
+using MercadoPago.Client.Preference;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -11,6 +16,27 @@ using System.IdentityModel.Tokens.Jwt;
 DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.Configure<MercadoPagoSettings>(
+    builder.Configuration.GetSection("MercadoPago"));
+
+var mpSettings = builder.Configuration
+    .GetSection("MercadoPago")
+    .Get<MercadoPagoSettings>()!;
+
+// 2) Configura globalmente o Access Token
+MercadoPagoConfig.AccessToken = mpSettings.AccessToken;
+
+// 3) Se for ambiente de dev, aponta pro sandbox
+if (builder.Environment.IsDevelopment())
+{
+    var sandboxBase = new Uri("https://api.sandbox.mercadopago.com/");
+    var hc = new System.Net.Http.HttpClient { BaseAddress = sandboxBase };
+    MercadoPagoConfig.HttpClient = new DefaultHttpClient(hc);
+}
+
+// 4) Registra seu serviço de preferência
+builder.Services.AddScoped<PreferenceService>();
 
 // Configuração do DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
