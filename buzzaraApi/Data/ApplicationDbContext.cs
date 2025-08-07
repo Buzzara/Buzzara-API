@@ -39,6 +39,9 @@ namespace buzzaraApi.Data
         public DbSet<SobreUsuario> SobreUsuarios { get; set; } = null!;
         public DbSet<ServicoCache> ServicosCaches { get; set; } = null!;
 
+        public DbSet<BoostPlan> BoostPlans { get; set; } = null!;
+        public DbSet<BoostOrder> BoostOrders { get; set; } = null!;
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

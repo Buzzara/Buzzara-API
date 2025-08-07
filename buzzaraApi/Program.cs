@@ -37,6 +37,8 @@ if (builder.Environment.IsDevelopment())
 
 // 4) Registra seu serviço de preferência
 builder.Services.AddScoped<PreferenceService>();
+builder.Services.AddScoped<BoostService>();
+
 
 // Configuração do DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
