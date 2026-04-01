@@ -223,6 +223,7 @@ namespace buzzaraApi.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Tarifa")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("UsuarioID")
@@ -244,6 +245,7 @@ namespace buzzaraApi.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ServicoID"));
 
                     b.Property<decimal?>("Altura")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<bool>("Ativo")
@@ -277,6 +279,7 @@ namespace buzzaraApi.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal?>("Peso")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Saidas")
@@ -318,6 +321,7 @@ namespace buzzaraApi.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("ValorCache")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
@@ -545,7 +549,7 @@ namespace buzzaraApi.Migrations
             modelBuilder.Entity("buzzaraApi.Models.HorarioAtendimento", b =>
                 {
                     b.HasOne("buzzaraApi.Models.Servico", "Servico")
-                        .WithMany()
+                        .WithMany("HorariosAtendimento")
                         .HasForeignKey("ServicoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -657,6 +661,8 @@ namespace buzzaraApi.Migrations
                     b.Navigation("Caches");
 
                     b.Navigation("Fotos");
+
+                    b.Navigation("HorariosAtendimento");
 
                     b.Navigation("Localizacao");
 

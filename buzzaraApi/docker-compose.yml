@@ -1,16 +1,31 @@
-﻿version: '3.8'
-
 services:
   buzzara-api:
     build: .
     container_name: buzzara-api
+    depends_on:
+      buzzara-db:
+        condition: service_healthy
     ports:
-      - "8080:8080"
+      - "${API_PORT:-8080}:8080"
     volumes:
-      - uploads-data:/app/Uploads
+      - uploads-data:/app/wwwroot/uploads
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-    restart: always
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Server=buzzara-db,1433;Initial Catalog=${DB_NAME:-buzzaradb};User ID=sa;Password=${MSSQL_SA_PASSWORD};Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;
+      JwtSettings__Secret: ${JWT_SECRET}
+      JwtSettings__Issuer: ${JWT_ISSUER:-buzzaraApi}
+      JwtSettings__Audience: ${JWT_AUDIENCE:-buzzaraApiUsers}
+      AppSettings__BackendUrl: ${BACKEND_URL:-http://localhost:8080}
+      AppSettings__FrontendUrl: ${FRONTEND_URL:-http://localhost:5173}
+      AppSettings__PublicBaseUrl: ${PUBLIC_BASE_URL:-http://localhost:8080}
+      SeedAdmin__Email: ${SEED_ADMIN_EMAIL:-admin@buzzara.com.br}
+      SeedAdmin__Password: ${SEED_ADMIN_PASSWORD:-123456}
+      SeedAdmin__Name: ${SEED_ADMIN_NAME:-Administrador}
+      SeedAdmin__Phone: ${SEED_ADMIN_PHONE:-11999999999}
+      SeedAdmin__Cpf: ${SEED_ADMIN_CPF:-00000000000}
+      SeedAdmin__Gender: ${SEED_ADMIN_GENDER:-Nao informado}
+    restart: unless-stopped
 
 volumes:
   uploads-data:

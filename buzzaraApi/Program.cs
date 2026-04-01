@@ -11,17 +11,23 @@ using System.IdentityModel.Tokens.Jwt;
 DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
+var isDevelopment = builder.Environment.IsDevelopment();
 
-// Configuração do DbContext
+// ConfiguraÃ§Ã£o do DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")
-        ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found."))
-    .EnableSensitiveDataLogging() // <-- mostra os valores dos parâmetros nas queries
-    .LogTo(Console.WriteLine, LogLevel.Error) // <-- exibe os erros do EF no console
-);
+        ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found."));
 
-// Configuração de autenticação com JWT
+    if (isDevelopment)
+    {
+        options.EnableSensitiveDataLogging();
+        options.LogTo(Console.WriteLine, LogLevel.Error);
+    }
+});
+
+// ConfiguraÃ§Ã£o de autenticaÃ§Ã£o com JWT
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = Encoding.UTF8.GetBytes(
     jwtSettings["Secret"] ?? throw new InvalidOperationException("JWT Secret Key is missing."));
@@ -40,7 +46,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             NameClaimType = JwtRegisteredClaimNames.NameId,
             RoleClaimType = "role",
-            ClockSkew = TimeSpan.Zero, // segurança extra
+            ClockSkew = TimeSpan.Zero, // seguranÃ§a extra
             ValidIssuer = jwtSettings["Issuer"],
             ValidAudience = jwtSettings["Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(secretKey)
@@ -61,7 +67,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// Registrar os seus serviços
+// Registrar os seus serviÃ§os
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ServicoService>();
@@ -78,13 +84,13 @@ builder.Services.AddHttpClient<GeoNamesService>();
 builder.Services.AddScoped<PagamentoService>();
 builder.Services.AddScoped<QRCodeService>();
 
-// Registrar o serviços de rotas publicas
+// Registrar o serviÃ§os de rotas publicas
 builder.Services.AddScoped<PublicoService>();
 builder.Services.AddScoped<AnuncioPublicoService>();
 
 
 
-// Configuração de CORS
+// ConfiguraÃ§Ã£o de CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -100,7 +106,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Configuração dos controllers e JSON
+// ConfiguraÃ§Ã£o dos controllers e JSON
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -112,6 +118,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
+
+await app.ApplyMigrationsAndSeedAsync();
 
 if (app.Environment.IsDevelopment())
 {

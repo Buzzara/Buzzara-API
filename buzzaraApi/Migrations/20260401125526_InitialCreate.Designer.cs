@@ -12,8 +12,8 @@ using buzzaraApi.Data;
 namespace buzzaraApi.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250428224232_AddTabelaPagamentosAnuncios")]
-    partial class AddTabelaPagamentosAnuncios
+    [Migration("20260401125526_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -105,6 +105,77 @@ namespace buzzaraApi.Migrations
                     b.ToTable("FotosAnuncios");
                 });
 
+            modelBuilder.Entity("buzzaraApi.Models.HorarioAtendimento", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Atende")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("DiaSemana")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<TimeSpan?>("HorarioFim")
+                        .HasColumnType("time");
+
+                    b.Property<TimeSpan?>("HorarioInicio")
+                        .HasColumnType("time");
+
+                    b.Property<int>("ServicoId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("VinteQuatroHoras")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServicoId");
+
+                    b.ToTable("HorariosAtendimentos");
+                });
+
+            modelBuilder.Entity("buzzaraApi.Models.Localizacao", b =>
+                {
+                    b.Property<int>("LocalizacaoID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LocalizacaoID"));
+
+                    b.Property<string>("Bairro")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Cidade")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Endereco")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Estado")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("float");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("float");
+
+                    b.Property<int>("ServicoID")
+                        .HasColumnType("int");
+
+                    b.HasKey("LocalizacaoID");
+
+                    b.HasIndex("ServicoID")
+                        .IsUnique();
+
+                    b.ToTable("Localizacoes");
+                });
+
             modelBuilder.Entity("buzzaraApi.Models.PagamentoAnuncio", b =>
                 {
                     b.Property<int>("PagamentoAnuncioID")
@@ -155,6 +226,7 @@ namespace buzzaraApi.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Tarifa")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("UsuarioID")
@@ -175,6 +247,10 @@ namespace buzzaraApi.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ServicoID"));
 
+                    b.Property<decimal?>("Altura")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<bool>("Ativo")
                         .HasColumnType("bit");
 
@@ -188,6 +264,16 @@ namespace buzzaraApi.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Disponibilidade")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Idade")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LugarEncontro")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -195,14 +281,101 @@ namespace buzzaraApi.Migrations
                     b.Property<int>("PerfilAcompanhanteID")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Preco")
+                    b.Property<decimal?>("Peso")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Saidas")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ServicoEspecial")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ServicoPrestado")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("ServicoID");
 
                     b.HasIndex("PerfilAcompanhanteID");
 
                     b.ToTable("Servicos");
+                });
+
+            modelBuilder.Entity("buzzaraApi.Models.ServicoCache", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DescricaoCache")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FormaPagamento")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ServicoId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("ValorCache")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServicoId");
+
+                    b.ToTable("ServicosCaches");
+                });
+
+            modelBuilder.Entity("buzzaraApi.Models.SobreUsuario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Atendimento")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Cabelo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Corpo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Estatura")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Etnia")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Pubis")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Relacionamento")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Seios")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ServicoId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServicoId")
+                        .IsUnique();
+
+                    b.ToTable("SobreUsuarios");
                 });
 
             modelBuilder.Entity("buzzaraApi.Models.Usuario", b =>
@@ -230,6 +403,17 @@ namespace buzzaraApi.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("EstaOnline")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("FotoCapaUrl")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("FotoPerfilUrl")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
                     b.Property<string>("Genero")
                         .HasColumnType("nvarchar(max)");
 
@@ -255,6 +439,12 @@ namespace buzzaraApi.Migrations
 
                     b.Property<string>("Telefone")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UltimoAcesso")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UltimoIP")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ValidationToken")
@@ -359,6 +549,28 @@ namespace buzzaraApi.Migrations
                     b.Navigation("Servico");
                 });
 
+            modelBuilder.Entity("buzzaraApi.Models.HorarioAtendimento", b =>
+                {
+                    b.HasOne("buzzaraApi.Models.Servico", "Servico")
+                        .WithMany("HorariosAtendimento")
+                        .HasForeignKey("ServicoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Servico");
+                });
+
+            modelBuilder.Entity("buzzaraApi.Models.Localizacao", b =>
+                {
+                    b.HasOne("buzzaraApi.Models.Servico", "Servico")
+                        .WithOne("Localizacao")
+                        .HasForeignKey("buzzaraApi.Models.Localizacao", "ServicoID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Servico");
+                });
+
             modelBuilder.Entity("buzzaraApi.Models.PagamentoAnuncio", b =>
                 {
                     b.HasOne("buzzaraApi.Models.Servico", "Servico")
@@ -390,6 +602,28 @@ namespace buzzaraApi.Migrations
                         .IsRequired();
 
                     b.Navigation("PerfilAcompanhante");
+                });
+
+            modelBuilder.Entity("buzzaraApi.Models.ServicoCache", b =>
+                {
+                    b.HasOne("buzzaraApi.Models.Servico", "Servico")
+                        .WithMany("Caches")
+                        .HasForeignKey("ServicoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Servico");
+                });
+
+            modelBuilder.Entity("buzzaraApi.Models.SobreUsuario", b =>
+                {
+                    b.HasOne("buzzaraApi.Models.Servico", "Servico")
+                        .WithOne("SobreUsuario")
+                        .HasForeignKey("buzzaraApi.Models.SobreUsuario", "ServicoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Servico");
                 });
 
             modelBuilder.Entity("buzzaraApi.Models.VideoAcompanhante", b =>
@@ -427,7 +661,15 @@ namespace buzzaraApi.Migrations
 
             modelBuilder.Entity("buzzaraApi.Models.Servico", b =>
                 {
+                    b.Navigation("Caches");
+
                     b.Navigation("Fotos");
+
+                    b.Navigation("HorariosAtendimento");
+
+                    b.Navigation("Localizacao");
+
+                    b.Navigation("SobreUsuario");
 
                     b.Navigation("Videos");
                 });

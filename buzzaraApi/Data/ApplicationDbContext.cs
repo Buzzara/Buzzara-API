@@ -56,6 +56,22 @@ namespace buzzaraApi.Data
                 .Property(u => u.FotoCapaUrl)
                 .HasMaxLength(255);
 
+            modelBuilder.Entity<PerfilAcompanhante>()
+                .Property(p => p.Tarifa)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Servico>()
+                .Property(s => s.Peso)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Servico>()
+                .Property(s => s.Altura)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<ServicoCache>()
+                .Property(c => c.ValorCache)
+                .HasPrecision(18, 2);
+
             // 1) Agendamento → PerfilAcompanhante (cascade ao excluir perfil)
             modelBuilder.Entity<Agendamento>()
                 .HasOne(a => a.PerfilAcompanhante)
