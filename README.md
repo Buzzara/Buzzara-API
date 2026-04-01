@@ -514,6 +514,31 @@ O setup atual foi ajustado para permitir:
 - revisar exposição de dados públicos sensíveis
 - adicionar README específico de endpoints, se necessário
 
+## Próximos Passos de Implementação
+
+Itens recomendados para a próxima fase do projeto:
+
+### Crítico
+
+- implementar endpoint para receber integração de gateway de pagamento
+- vincular a confirmação do gateway ao ciclo real de pagamento do anúncio
+- substituir o fluxo atual de pagamento simulado por integração real com provedor
+- revisar completamente o método de recuperação de senha
+- separar corretamente tokens de recuperação de senha e tokens de sessão
+
+### Importante
+
+- implementar validação de documentos dos usuários
+- definir fluxo de upload, análise e aprovação de documentos
+- implementar validação de imagens com IA
+- validar fotos enviadas para identificar conteúdo inválido, inadequado ou fora da política da plataforma
+
+### Evolução
+
+- registrar auditoria dos processos de validação de documentos e imagens
+- criar trilha de status para documentos e mídias analisadas
+- definir políticas internas de moderação e reprovação automática
+
 ## Comandos Rápidos
 
 Subir tudo:
